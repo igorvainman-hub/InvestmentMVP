@@ -17,7 +17,15 @@ investment_os/
 │   ├── growth.py          # Growth Agent
 │   ├── scoring.py         # Scoring Engine + confidence
 │   └── due_diligence.py   # Due Diligence Agent — "что узнать перед покупкой"
-└── data/deals/         # сохранённые сделки (создаётся автоматически)
+│   └── sources/
+│       ├── apify_flippa.py      # клиент Apify для Flippa
+│       ├── flippa_normalizer.py # форматирование в поля DealObject
+│       ├── flippa_archive.py    # локальный архив и дедупликация по URL
+│       └── flippa_service.py    # явный импорт из Flippa
+└── data/
+    ├── deals/                   # сделки основного pipeline (создаётся автоматически)
+    ├── flippa_archive/          # изолированный архив Flippa (создаётся при импорте)
+    └── flippa_latest_raw.json   # последний исходный ответ Apify (перезаписывается)
 ```
 
 ## Установка
@@ -43,6 +51,46 @@ python cli.py status <deal_id> WATCHLIST     # вручную сменить с�
 
 Если LLM вернул пустой или невалидный JSON, анализ останавливается с ошибкой.
 Сделка не получает ложное решение `IGNORE / 0`.
+
+## Flippa через Apify
+
+Flippa подключён как изолированный контур и **не запускается автоматически**:
+он не меняет текущий Collector и не передаёт сделки в основной pipeline.
+Используется Actor `epicscrapers/flippa-scraper`.
+
+Перед реальным вызовом создайте токен в Apify и задайте его только в окружении:
+
+```powershell
+$env:APIFY_API_TOKEN = "..."
+```
+
+Не добавляйте токен в исходный код, README или git. Клиент использует только
+стандартную библиотеку Python; новые зависимости не требуются.
+
+Вызов `fetch_and_archive()` выполняет платный запрос к Apify. Начинайте с малого
+`maxItems`, например 3, и запускайте его только после явного решения:
+
+```python
+from agents.sources.flippa_service import FlippaService
+
+flippa = FlippaService()
+new_deals = flippa.fetch_and_archive(
+    status="open",
+    propertyType="saas",
+    maxItems=3,
+)
+```
+
+После вызова:
+
+- исходный ответ Apify перезаписывается в `data/flippa_latest_raw.json`;
+- только новые URL сохраняются в `data/flippa_archive/` как `DealObject` со
+  статусом `NEW`;
+- дубли исключаются по полю `url`;
+- данные не запускают Analyzer, Growth или Scoring без отдельного действия.
+
+Получить сделки, добавленные после конкретного времени, можно без обращения к
+Apify через `flippa.list_new_since(...)`.
 
 ## Использование (как библиотека)
 
@@ -122,7 +170,8 @@ NEW → COLLECTED → ANALYZED → SCORED → WATCHLIST | ACQUIRED | REJECTED
 
 ## Что дальше (не входит в этот скелет)
 
-- Веб-поиск/парсинг маркетплейсов (Flippa, Acquire и т.п.) для Deal Collector
+- Передача архивных Flippa-сделок в основной pipeline по явному запросу
+- Веб-поиск/парсинг других маркетплейсов (Acquire и т.п.) для Deal Collector
 - Полноценный CLI/TUI или веб-интерфейс вместо input()
 - Batch-режим: прогнать список сделок из CSV
 - Портфельный вид (сравнение купленных активов во времени, факт vs прогноз)
