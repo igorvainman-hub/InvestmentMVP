@@ -1,0 +1,77 @@
+{
+  "id": "11db219b",
+  "created_at": "2026-07-13T06:23:34.800934",
+  "updated_at": "2026-07-13T06:23:34.801160",
+  "status": "SCORED",
+  "source": "ChristianForums.com is a long-established, premium Christian community and discussion forum with an extremely valuable category-defining domain name.",
+  "name": "",
+  "url": "",
+  "type": "",
+  "b2b_b2c": "",
+  "price": null,
+  "revenue": null,
+  "traffic": null,
+  "description": "",
+  "problem_solved": "",
+  "target_users": "",
+  "monetization_model": "",
+  "strengths": [],
+  "weaknesses": [],
+  "risks": [],
+  "ai_opportunities": [],
+  "growth_levers": [],
+  "competition_level": "",
+  "score_breakdown": {
+    "market_potential": 0,
+    "ai_leverage": 0,
+    "ease_of_improvement": 0,
+    "revenue_stability": 0,
+    "entry_cost_fit": 0
+  },
+  "score": 0,
+  "confidence": 0,
+  "decision": "IGNORE",
+  "notes": "",
+  "missing_info": [],
+  "questions_for_seller": [],
+  "due_diligence_risks": [],
+  "agent_outputs": {
+    "collector": {
+      "mode": "notes",
+      "raw_notes": "ChristianForums.com is a long-established, premium Christian community and discussion forum with an extremely valuable category-defining domain name.The site has been online for many years and has built up significant brand recognition, organic traffic, user history, and a large email/user base in the Christian niche. The domain itself is highly desirable: short, memorable, exact-match, and directly aligned with one of the largest faith-based audiences online.ChristianForums.com covers a wide range of topics including theology, scripture, prayer, church life, apologetics, relationships, current events, ministry, and everyday life from a Christian perspective. It serves a broad Christian audience and has the potential to be expanded into a much larger media, community, newsletter, membership, or ministry platform.The site currently receives strong traffic and has a valuable existing audience, but it has not been fully optimized or aggressively monetized. There is meaningful upside for a buyer who has the time, resources, and strategy to improve monetization through advertising, sponsorships, premium memberships, newsletter monetization, affiliate partnerships, donations, digital products, courses, or partnerships with Christian organizations, publishers, churches, and ministries.This is a rare opportunity to acquire an aged, authoritative Christian domain with existing traffic, users, and significant brand potential. The asset is being sold because I am focused on other businesses and do not have the time to give ChristianForums.com the attention it deserves.price: 2100Monthly RevenueUSD $200 AVGfrom: flippa##### About the Business",
+      "parsed": {}
+    },
+    "analyzer": {
+      "_mock": true,
+      "note": "OPENAI_API_KEY not set — this is a placeholder response."
+    },
+    "growth": {
+      "_mock": true,
+      "note": "OPENAI_API_KEY not set — this is a placeholder response."
+    },
+    "scoring": {
+      "_mock": true,
+      "note": "OPENAI_API_KEY not set — this is a placeholder response."
+    }
+  },
+  "history": [
+    {
+      "timestamp": "2026-07-13T06:23:34.800961",
+      "actor": "collector",
+      "action": "status_change",
+      "detail": "NEW -> COLLECTED"
+    },
+    {
+      "timestamp": "2026-07-13T06:23:34.801054",
+      "actor": "analyzer",
+      "action": "status_change",
+      "detail": "COLLECTED -> ANALYZED"
+    },
+    {
+      "timestamp": "2026-07-13T06:23:34.801154",
+      "actor": "scoring",
+      "action": "status_change",
+      "detail": "ANALYZED -> SCORED"
+    }
+  ]
+}
