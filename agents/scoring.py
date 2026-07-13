@@ -15,6 +15,8 @@ from __future__ import annotations
 import json
 from deal_model import DealObject
 from llm_client import LLMClient
+from pydantic import ValidationError
+from agents.schemas import ScoringResponse
 
 SYSTEM_PROMPT = """You are the Scoring Engine inside Investment OS.
 Given a fully-analyzed Deal Object (JSON: description, strengths, weaknesses, \
@@ -47,29 +49,31 @@ class ScoringEngine:
 
     def score(self, deal: DealObject) -> DealObject:
         deal_json = json.dumps(deal.to_dict(), ensure_ascii=False, indent=2)
-        raw = self.llm.complete(SYSTEM_PROMPT, deal_json, json_mode=True)
         try:
-            data = json.loads(raw)
-        except json.JSONDecodeError as exc:
-            raise ValueError("Scoring engine returned invalid JSON") from exc
-        if not isinstance(data, dict) or not data:
-            raise ValueError("Scoring engine returned an empty JSON object")
+            raw = self.llm.complete_json(SYSTEM_PROMPT, deal_json)
+        except Exception as exc:
+            raise ValueError("Scoring engine failed to produce valid JSON") from exc
+
+        try:
+            validated = ScoringResponse.parse_obj(raw)
+        except ValidationError as exc:
+            raise ValueError("Scoring engine returned invalid structure") from exc
 
         breakdown = {
-            "market_potential": self._clamp(data.get("market_potential", 0), 25),
-            "ai_leverage": self._clamp(data.get("ai_leverage", 0), 25),
-            "ease_of_improvement": self._clamp(data.get("ease_of_improvement", 0), 20),
-            "revenue_stability": self._clamp(data.get("revenue_stability", 0), 20),
-            "entry_cost_fit": self._clamp(data.get("entry_cost_fit", 0), 10),
+            "market_potential": int(validated.market_potential),
+            "ai_leverage": int(validated.ai_leverage),
+            "ease_of_improvement": int(validated.ease_of_improvement),
+            "revenue_stability": int(validated.revenue_stability),
+            "entry_cost_fit": int(validated.entry_cost_fit),
         }
         total = sum(breakdown.values())
-        confidence = self._clamp(data.get("confidence", 0), 100)
+        confidence = int(validated.confidence)
 
         deal.score_breakdown = breakdown
         deal.score = total
         deal.confidence = confidence
         deal.decision = self._decide(total)
-        deal.agent_outputs["scoring"] = data
+        deal.agent_outputs["scoring"] = validated.dict()
         deal.set_status("SCORED", actor="scoring")
 
         return deal

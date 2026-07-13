@@ -14,6 +14,9 @@ pipeline (store, scoring math, CLI) can be tested without an API key.
 from __future__ import annotations
 import os
 import json
+import time
+import random
+from typing import Any
 
 
 class LLMClient:
@@ -49,6 +52,30 @@ class LLMClient:
             **kwargs,
         )
         return response.choices[0].message.content
+
+    def complete_json(self, system_prompt: str, user_prompt: str, retries: int = 3, backoff_factor: float = 1.0) -> Any:
+        """Call `complete(..., json_mode=True)` and return the parsed JSON object.
+
+        Retries on transient failures or invalid JSON with exponential backoff.
+        Raises RuntimeError if the call ultimately fails or returns invalid JSON.
+        """
+        last_exc: Exception | None = None
+        for attempt in range(1, retries + 1):
+            try:
+                raw = self.complete(system_prompt, user_prompt, json_mode=True)
+                # If mock mode, complete() already returns a JSON string for json_mode
+                parsed = json.loads(raw)
+                return parsed
+            except json.JSONDecodeError as exc:
+                last_exc = exc
+            except Exception as exc:
+                last_exc = exc
+
+            if attempt < retries:
+                sleep_for = backoff_factor * (2 ** (attempt - 1))
+                time.sleep(sleep_for + random.random() * 0.1)
+
+        raise RuntimeError("LLM call failed or returned invalid JSON") from last_exc
 
     def _mock_response(self, json_mode: bool) -> str:
         if json_mode:

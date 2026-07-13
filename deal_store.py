@@ -22,8 +22,12 @@ class DealStore:
 
     def save(self, deal: DealObject) -> str:
         deal.touch()
-        with open(self._path(deal.id), "w", encoding="utf-8") as f:
+        # Write atomically: write to temp file then replace
+        path = self._path(deal.id)
+        tmp_path = path + ".tmp"
+        with open(tmp_path, "w", encoding="utf-8") as f:
             json.dump(deal.to_dict(), f, ensure_ascii=False, indent=2)
+        os.replace(tmp_path, path)
         return deal.id
 
     def load(self, deal_id: str) -> Optional[DealObject]:

@@ -8,6 +8,8 @@ from __future__ import annotations
 import json
 from deal_model import DealObject
 from llm_client import LLMClient
+from pydantic import ValidationError
+from agents.schemas import AnalyzerResponse
 
 SYSTEM_PROMPT = """You are the Deal Analyzer Agent inside Investment OS — the main analytical brain.
 Given a structured Deal Object (JSON), analyze the underlying business critically and honestly.
@@ -32,13 +34,16 @@ class AnalyzerAgent:
 
     def analyze(self, deal: DealObject) -> DealObject:
         deal_json = json.dumps(deal.to_dict(), ensure_ascii=False, indent=2)
-        raw = self.llm.complete(SYSTEM_PROMPT, deal_json, json_mode=True)
         try:
-            data = json.loads(raw)
-        except json.JSONDecodeError as exc:
-            raise ValueError("Analyzer returned invalid JSON") from exc
-        if not isinstance(data, dict) or not data:
-            raise ValueError("Analyzer returned an empty JSON object")
+            raw = self.llm.complete_json(SYSTEM_PROMPT, deal_json)
+        except Exception as exc:
+            raise ValueError("Analyzer failed to produce valid JSON") from exc
+
+        try:
+            validated = AnalyzerResponse.parse_obj(raw)
+        except ValidationError as exc:
+            raise ValueError("Analyzer returned invalid structure") from exc
+        data = validated.dict()
 
         deal.strengths = data.get("strengths", deal.strengths)
         deal.weaknesses = data.get("weaknesses", deal.weaknesses)

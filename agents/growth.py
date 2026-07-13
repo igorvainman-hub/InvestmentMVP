@@ -9,6 +9,8 @@ from __future__ import annotations
 import json
 from deal_model import DealObject
 from llm_client import LLMClient
+from pydantic import ValidationError
+from agents.schemas import GrowthResponse
 
 SYSTEM_PROMPT = """You are the Growth Agent inside Investment OS.
 Given an already-analyzed Deal Object (JSON, includes strengths/weaknesses/risks),
@@ -30,14 +32,17 @@ class GrowthAgent:
 
     def find_growth(self, deal: DealObject) -> DealObject:
         deal_json = json.dumps(deal.to_dict(), ensure_ascii=False, indent=2)
-        raw = self.llm.complete(SYSTEM_PROMPT, deal_json, json_mode=True)
         try:
-            data = json.loads(raw)
-        except json.JSONDecodeError as exc:
-            raise ValueError("Growth agent returned invalid JSON") from exc
-        if not isinstance(data, dict) or not data:
-            raise ValueError("Growth agent returned an empty JSON object")
+            raw = self.llm.complete_json(SYSTEM_PROMPT, deal_json)
+        except Exception as exc:
+            raise ValueError("Growth agent failed to produce valid JSON") from exc
 
+        try:
+            validated = GrowthResponse.parse_obj(raw)
+        except ValidationError as exc:
+            raise ValueError("Growth agent returned invalid structure") from exc
+
+        data = validated.dict()
         deal.growth_levers = data.get("growth_levers", deal.growth_levers)
         deal.agent_outputs["growth"] = data
 

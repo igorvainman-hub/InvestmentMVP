@@ -14,6 +14,8 @@ from __future__ import annotations
 import json
 from deal_model import DealObject
 from llm_client import LLMClient
+from pydantic import ValidationError
+from agents.schemas import DueDiligenceResponse
 
 SYSTEM_PROMPT = """You are the Due Diligence Agent inside Investment OS.
 The other agents already answered: what is this? is it a good business? how to grow it? \
@@ -41,13 +43,18 @@ class DueDiligenceAgent:
 
     def review(self, deal: DealObject) -> DealObject:
         deal_json = json.dumps(deal.to_dict(), ensure_ascii=False, indent=2)
-        raw = self.llm.complete(SYSTEM_PROMPT, deal_json, json_mode=True)
+
         try:
-            data = json.loads(raw)
-        except json.JSONDecodeError as exc:
-            raise ValueError("Due diligence agent returned invalid JSON") from exc
-        if not isinstance(data, dict) or not data:
-            raise ValueError("Due diligence agent returned an empty JSON object")
+            raw = self.llm.complete_json(SYSTEM_PROMPT, deal_json)
+        except Exception as exc:
+            raise ValueError("Due diligence agent failed to produce valid JSON") from exc
+
+        try:
+            validated = DueDiligenceResponse.parse_obj(raw)
+        except ValidationError as exc:
+            raise ValueError("Due diligence agent returned invalid structure") from exc
+
+        data = validated.dict()
 
         # Merge with (don't overwrite) Analyzer's missing_info — dedupe while preserving order
         combined_missing = list(deal.missing_info) + list(data.get("missing_info", []))

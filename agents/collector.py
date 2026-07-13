@@ -8,6 +8,8 @@ auto-fill type/b2b_b2c/description if user gives just a URL + notes.
 from __future__ import annotations
 from deal_model import DealObject
 from llm_client import LLMClient
+from pydantic import ValidationError
+from agents.schemas import CollectorResponse
 
 SYSTEM_PROMPT = """You are the Deal Collector Agent inside Investment OS.
 Your job: take raw, messy notes about a digital asset (SaaS, website, \
@@ -42,19 +44,23 @@ class CollectorAgent:
 
     def collect_from_notes(self, raw_notes: str, source: str = "Manual") -> DealObject:
         """Use the LLM to structure messy raw notes into a DealObject."""
-        raw = self.llm.complete(SYSTEM_PROMPT, raw_notes, json_mode=True)
-        import json
         try:
-            data = json.loads(raw)
-        except json.JSONDecodeError:
+            raw_data = self.llm.complete_json(SYSTEM_PROMPT, raw_notes)
+        except Exception:
+            raw_data = {"description": raw_notes, "name": "UNPARSED"}
+
+        if isinstance(raw_data, dict) and raw_data.get("_mock"):
+            raw_data = {"name": "Draft from notes", "description": raw_notes}
+
+        if not isinstance(raw_data, dict):
+            raw_data = {"description": raw_notes, "name": "UNPARSED"}
+
+        # Validate/coerce with pydantic; fall back to minimal data on failure
+        try:
+            parsed = CollectorResponse.parse_obj(raw_data)
+            data = parsed.dict(exclude_none=True)
+        except ValidationError:
             data = {"description": raw_notes, "name": "UNPARSED"}
-        if data.get("_mock"):
-            data = {
-                "name": "Draft from notes",
-                "description": raw_notes,
-            }
-        data.pop("_mock", None)
-        data.pop("note", None)
         deal = DealObject(
             source=source,
             **{k: v for k, v in data.items() if k in DealObject.__dataclass_fields__},
