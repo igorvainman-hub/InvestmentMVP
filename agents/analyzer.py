@@ -35,8 +35,10 @@ class AnalyzerAgent:
         raw = self.llm.complete(SYSTEM_PROMPT, deal_json, json_mode=True)
         try:
             data = json.loads(raw)
-        except json.JSONDecodeError:
-            data = {}
+        except json.JSONDecodeError as exc:
+            raise ValueError("Analyzer returned invalid JSON") from exc
+        if not isinstance(data, dict) or not data:
+            raise ValueError("Analyzer returned an empty JSON object")
 
         deal.strengths = data.get("strengths", deal.strengths)
         deal.weaknesses = data.get("weaknesses", deal.weaknesses)

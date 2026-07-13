@@ -48,6 +48,11 @@ class CollectorAgent:
             data = json.loads(raw)
         except json.JSONDecodeError:
             data = {"description": raw_notes, "name": "UNPARSED"}
+        if data.get("_mock"):
+            data = {
+                "name": "Draft from notes",
+                "description": raw_notes,
+            }
         data.pop("_mock", None)
         data.pop("note", None)
         deal = DealObject(

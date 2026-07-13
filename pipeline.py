@@ -15,6 +15,7 @@ from agents.due_diligence import DueDiligenceAgent
 # Due Diligence is only worth running for deals that look promising enough
 # to actually spend seller/buyer time on.
 DD_ELIGIBLE_DECISIONS = {"BUY", "WATCH"}
+MANUAL_STATUSES = {"WATCHLIST", "ACQUIRED", "REJECTED"}
 
 
 class InvestmentOSPipeline:
@@ -36,6 +37,10 @@ class InvestmentOSPipeline:
         return self._run_rest(deal)
 
     def _run_rest(self, deal: DealObject) -> DealObject:
+        if self.llm.mock:
+            deal.log("pipeline", "analysis_skipped", "OPENAI_API_KEY is not set; saved as a draft.")
+            self.store.save(deal)
+            return deal
         deal = self.analyzer.analyze(deal)
         deal = self.growth.find_growth(deal)
         deal = self.scorer.score(deal)
@@ -49,7 +54,13 @@ class InvestmentOSPipeline:
         deal = self.store.load(deal_id)
         if deal is None:
             raise ValueError(f"Deal {deal_id} not found")
-        return self._run_rest(deal)
+        previous_status = deal.status if deal.status in MANUAL_STATUSES else None
+        deal = self._run_rest(deal)
+        if previous_status:
+            deal.set_status(previous_status, actor="pipeline")
+            deal.log("pipeline", "manual_status_restored", previous_status)
+            self.store.save(deal)
+        return deal
 
     def set_status(self, deal_id: str, new_status: str, actor: str = "user") -> DealObject:
         """Manually move a deal to WATCHLIST / ACQUIRED / REJECTED etc."""

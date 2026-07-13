@@ -29,6 +29,15 @@ def print_deal_full(deal):
     print(json.dumps(deal.to_dict(), ensure_ascii=False, indent=2))
 
 
+def print_pipeline_result(pipeline, deal):
+    if pipeline.llm.mock and deal.status == "COLLECTED":
+        print(
+            "\nSaved as a draft. Set OPENAI_API_KEY, then run "
+            f"python cli.py rerun {deal.id} to analyze it."
+        )
+    print_deal_full(deal)
+
+
 def cmd_add(pipeline):
     print("Enter deal fields (leave blank if unknown):")
     name = input("name: ").strip()
@@ -52,7 +61,7 @@ def cmd_add(pipeline):
 
     print("\nRunning pipeline (Collector -> Analyzer -> Growth -> Scoring -> [Due Diligence])...")
     deal = pipeline.run_from_manual_fields(source=source, **fields)
-    print_deal_full(deal)
+    print_pipeline_result(pipeline, deal)
 
 
 def cmd_notes(pipeline):
@@ -68,7 +77,7 @@ def cmd_notes(pipeline):
 
     print("\nRunning pipeline (Collector -> Analyzer -> Growth -> Scoring -> [Due Diligence])...")
     deal = pipeline.run_from_notes(raw_notes, source=source)
-    print_deal_full(deal)
+    print_pipeline_result(pipeline, deal)
 
 
 def cmd_list(pipeline):

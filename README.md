@@ -24,7 +24,7 @@ investment_os/
 
 ```bash
 pip install -r requirements.txt --break-system-packages
-export OPENAI_API_KEY="sk-..."   # без этого работает в mock-режиме (score/confidence всегда 0)
+export OPENAI_API_KEY="sk-..."   # без ключа сделка сохраняется как черновик COLLECTED без анализа и score
 ```
 
 ## Использование (CLI)
@@ -37,6 +37,12 @@ python cli.py show <deal_id>                 # полная карточка с�
 python cli.py rerun <deal_id>                # пересчитать анализ/score
 python cli.py status <deal_id> WATCHLIST     # вручную сменить статус (WATCHLIST/ACQUIRED/REJECTED)
 ```
+
+`rerun` обновляет анализ и score, но сохраняет вручную установленный статус
+`WATCHLIST`, `ACQUIRED` или `REJECTED`.
+
+Если LLM вернул пустой или невалидный JSON, анализ останавливается с ошибкой.
+Сделка не получает ложное решение `IGNORE / 0`.
 
 ## Использование (как библиотека)
 

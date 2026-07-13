@@ -50,8 +50,10 @@ class ScoringEngine:
         raw = self.llm.complete(SYSTEM_PROMPT, deal_json, json_mode=True)
         try:
             data = json.loads(raw)
-        except json.JSONDecodeError:
-            data = {}
+        except json.JSONDecodeError as exc:
+            raise ValueError("Scoring engine returned invalid JSON") from exc
+        if not isinstance(data, dict) or not data:
+            raise ValueError("Scoring engine returned an empty JSON object")
 
         breakdown = {
             "market_potential": self._clamp(data.get("market_potential", 0), 25),

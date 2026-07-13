@@ -44,8 +44,10 @@ class DueDiligenceAgent:
         raw = self.llm.complete(SYSTEM_PROMPT, deal_json, json_mode=True)
         try:
             data = json.loads(raw)
-        except json.JSONDecodeError:
-            data = {}
+        except json.JSONDecodeError as exc:
+            raise ValueError("Due diligence agent returned invalid JSON") from exc
+        if not isinstance(data, dict) or not data:
+            raise ValueError("Due diligence agent returned an empty JSON object")
 
         # Merge with (don't overwrite) Analyzer's missing_info — dedupe while preserving order
         combined_missing = list(deal.missing_info) + list(data.get("missing_info", []))

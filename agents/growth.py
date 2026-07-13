@@ -33,8 +33,10 @@ class GrowthAgent:
         raw = self.llm.complete(SYSTEM_PROMPT, deal_json, json_mode=True)
         try:
             data = json.loads(raw)
-        except json.JSONDecodeError:
-            data = {}
+        except json.JSONDecodeError as exc:
+            raise ValueError("Growth agent returned invalid JSON") from exc
+        if not isinstance(data, dict) or not data:
+            raise ValueError("Growth agent returned an empty JSON object")
 
         deal.growth_levers = data.get("growth_levers", deal.growth_levers)
         deal.agent_outputs["growth"] = data
