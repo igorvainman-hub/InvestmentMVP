@@ -13,6 +13,10 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 class ApifyFlippaClient:
     """Run a configured Apify actor and return its dataset items unchanged."""

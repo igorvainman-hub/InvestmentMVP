@@ -18,6 +18,10 @@ import time
 import random
 from typing import Any
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 class LLMClient:
     def __init__(self, model: str = "gpt-4o-mini", api_key: str | None = None):

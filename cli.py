@@ -11,7 +11,6 @@ Usage:
 """
 
 import sys
-import json
 from pipeline import InvestmentOSPipeline
 
 
@@ -25,8 +24,18 @@ def print_deal_summary(deal):
         print(f"  missing: {', '.join(deal.missing_info[:3])}{' ...' if len(deal.missing_info) > 3 else ''}")
 
 
-def print_deal_full(deal):
-    print(json.dumps(deal.to_dict(), ensure_ascii=False, indent=2))
+def print_deal_debug(deal):
+    print(f"id={deal.id} status={deal.status} decision={deal.decision or '-'}")
+    print(f"score={deal.score} confidence={deal.confidence}%")
+    if deal.history:
+        last_event = deal.history[-1]
+        print(f"last_event={last_event.get('action')} :: {last_event.get('detail')}")
+    if deal.missing_info:
+        print(f"missing_info={deal.missing_info[:3]}")
+    if deal.history:
+        print("history:")
+        for item in deal.history[-5:]:
+            print(f"  - {item.get('actor')} | {item.get('action')} | {item.get('detail')}")
 
 
 def print_pipeline_result(pipeline, deal):
@@ -35,7 +44,7 @@ def print_pipeline_result(pipeline, deal):
             "\nSaved as a draft. Set OPENAI_API_KEY, then run "
             f"python cli.py rerun {deal.id} to analyze it."
         )
-    print_deal_full(deal)
+    print_deal_debug(deal)
 
 
 def cmd_add(pipeline):
@@ -94,12 +103,12 @@ def cmd_show(pipeline, deal_id):
     if deal is None:
         print(f"Deal {deal_id} not found.")
         return
-    print_deal_full(deal)
+    print_deal_debug(deal)
 
 
 def cmd_rerun(pipeline, deal_id):
     deal = pipeline.rerun_analysis(deal_id)
-    print_deal_full(deal)
+    print_deal_debug(deal)
 
 
 def cmd_status(pipeline, deal_id, new_status):
