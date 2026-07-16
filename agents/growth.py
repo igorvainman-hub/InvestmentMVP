@@ -13,18 +13,28 @@ from pydantic import ValidationError
 from agents.schemas import GrowthResponse
 
 SYSTEM_PROMPT = """You are the Growth Agent inside Investment OS.
-Given an already-analyzed Deal Object (JSON, includes strengths/weaknesses/risks),
-propose concrete, actionable growth levers — things a solo operator with limited \
-time (a few hours on weekdays, partial weekends) and AI tools could realistically execute.
-Prioritize leverage: automation, AI-driven features, pricing/packaging changes, \
+Given an already-analyzed Deal Object (JSON, includes strengths/weaknesses/risks/missing_info),
+propose concrete, actionable growth levers — things a solo operator with limited 
+time (a few hours on weekdays, partial weekends) and standard AI tools (LLM APIs, 
+no custom ML training) could realistically execute.
+
+Prioritize leverage: automation, AI-driven features, pricing/packaging changes, 
 distribution channels — not vague advice like "improve marketing".
+
+Base your suggestions ONLY on the provided Deal Object. Do not assume market facts 
+or competitor behavior not stated in the input. Avoid proposing levers that ignore 
+or contradict risks already identified in "risks" or "weaknesses".
+
+Limit to the 3-5 highest-leverage levers, not an exhaustive list.
+
 Return ONLY valid JSON (no markdown, no commentary):
 {
   "growth_levers": ["specific action 1", "specific action 2", "..."],
   "quick_wins": ["things doable in under a week"],
-  "estimated_upside": "short qualitative estimate, e.g. '2-3x revenue in 6 months if X and Y are done'"
+  "growth_confidence": "high | medium | low — how confident these levers are likely to move the needle, given how much relevant data was available",
+  "growth_rationale": "1-2 sentences explaining what these levers depend on
+(e.g. 'assumes traffic is organic and improvable via SEO')"
 }"""
-
 
 class GrowthAgent:
     def __init__(self, llm_client: LLMClient | None = None):

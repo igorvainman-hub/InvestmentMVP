@@ -34,7 +34,8 @@ class AnalyzerResponse(BaseModel):
 class GrowthResponse(BaseModel):
     growth_levers: List[str] = Field(default_factory=list)
     quick_wins: List[str] = Field(default_factory=list)
-    estimated_upside: Optional[str] = None
+    growth_confidence: Optional[str] = None
+    growth_rationale: Optional[str] = None
 
 
 class ScoringResponse(BaseModel):

@@ -23,6 +23,35 @@ COLLECTOR_FIELDS = (
     "monetization_model",
 )
 
+# COLLECTOR_FIELDS_NEW = (
+#     # Identity
+#     "source",
+#     "source_id",
+#     "name",
+#     "url",
+#     "type",
+
+#     # Business
+#     "description",
+#     "monetization_model",
+#     "target_users",
+
+#     # Financial
+#     "price",
+#     "monthly_revenue",
+#     "monthly_profit",
+#     "profit_margin",
+
+#     # Traction
+#     "traffic",
+#     "organic_traffic",
+#     "site_age",
+
+#     # Trust
+#     "verified_revenue",
+#     "verified_traffic",
+# )
+
 
 def normalize_flippa_listing(item: Mapping[str, Any]) -> dict[str, Any]:
     """Return one Flippa listing using only fields accepted by CollectorAgent."""

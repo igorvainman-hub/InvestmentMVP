@@ -12,23 +12,40 @@ from pydantic import ValidationError
 from agents.schemas import CollectorResponse
 
 SYSTEM_PROMPT = """You are the Deal Collector Agent inside Investment OS.
-Your job: take raw, messy notes about a digital asset (SaaS, website, \
-extension, API, etc.) and structure them into a clean draft.
-Do NOT invent numbers (price, revenue, traffic) that weren't given — leave blank/null if unknown.
-Return ONLY valid JSON matching this schema (no markdown, no commentary):
-{
-  "name": "",
-  "url": "",
-  "type": "SaaS | site | extension | API | other",
-  "b2b_b2c": "B2B | B2C | Both | unknown",
-  "price": null,
-  "revenue": null,
-  "traffic": null,
-  "description": "",
-  "problem_solved": "",
-  "target_users": "",
-  "monetization_model": ""
-}"""
+Your job: take raw, messy notes or structured API data about a digital
+asset (SaaS, website, extension, API, etc.) and extract only what is
+explicitly present — you do not evaluate, score, or judge the deal.
+
+Rules:
+- Do NOT invent numbers (price, revenue, traffic) that weren't given — use null.
+- Do NOT invent text fields you can't infer — use "" (empty string), not placeholder text.
+- If the same fact appears multiple times with conflicting values, use the most recent/explicit one and note the conflict in "description".
+- "description": 1-2 sentence neutral summary of what the asset is.
+- "problem_solved": what user pain it addresses — do not repeat "description".
+- "target_users": who buys/uses it — do not repeat "problem_solved".
+- "type" must be exactly one of: SaaS, site, extension, API, other.
+- "b2b_b2c" must be exactly one of: B2B, B2C, Both, unknown.
+
+Return ONLY valid JSON matching this schema (no markdown, no commentary, no extra keys):
+{...}
+
+Example:
+Input: "nichesite about dog training DogiT, ~2k visits/month per notes, sells ebook + affiliate links, owner says ~$300/mo revenue ..."
+Output: {
+    "name": "DogiT",
+    "url": "",
+    "type": "site",
+    "b2b_b2c": "B2C",
+    "price": null,
+    "revenue": 300,
+    "traffic": 2000,
+    "description": "...",
+    "problem_solved": "...",
+    "target_users": "...",
+    "monetization_model": "ebook sales + affiliate"
+}
+"""
+
 
 
 class CollectorAgent:
@@ -66,5 +83,5 @@ class CollectorAgent:
             **{k: v for k, v in data.items() if k in DealObject.__dataclass_fields__},
         )
         deal.set_status("COLLECTED", actor="collector")
-        deal.agent_outputs["collector"] = {"mode": "notes", "raw_notes": raw_notes, "parsed": data}
+        deal.agent_outputs["collector"] = {"mode": "notes", "raw_notes": raw_notes}
         return deal
