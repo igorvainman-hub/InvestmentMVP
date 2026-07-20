@@ -20,7 +20,7 @@ from agents.schemas import ScoringResponse
 
 SYSTEM_PROMPT = """You are the Scoring Engine inside Investment OS.
 Given a fully-analyzed Deal Object (JSON: description, strengths, weaknesses, \
-risks, ai_opportunities, growth_levers, competition_level, price, revenue, missing_info), \
+risks, ai_opportunities, growth_levers, competition_level, price, monthly_revenue, monthly_profit, profit_margin, traffic, missing_info), \
 score it on 5 dimensions. Base scores ONLY on the provided data — do not use \
 outside knowledge about the company or market.
 
@@ -43,7 +43,7 @@ score relative to typical micro-SaaS/small-asset acquisition ranges, and say so 
 explicitly in reasoning if budget context is missing.
 
 Also estimate "confidence" (0-100): how much this score can be trusted given \
-how much solid data (revenue, traffic, price, etc.) was actually available vs. \
+how much solid data (monthly_revenue, traffic, price, etc.) was actually available vs. \
 missing/unknown, per missing_info. A deal with many unknowns should get LOW \
 confidence even if the score looks good.
 

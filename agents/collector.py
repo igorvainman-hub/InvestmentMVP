@@ -2,7 +2,7 @@
 Deal Collector Agent
 Turns raw input (url, description, price) into a draft DealObject.
 MVP: mostly structures manual input; LLM call is optional to
-auto-fill type/b2b_b2c/description if user gives just a URL + notes.
+auto-fill type/description/financial details if user gives just a URL + notes.
 """
 
 from __future__ import annotations
@@ -17,14 +17,12 @@ asset (SaaS, website, extension, API, etc.) and extract only what is
 explicitly present — you do not evaluate, score, or judge the deal.
 
 Rules:
-- Do NOT invent numbers (price, revenue, traffic) that weren't given — use null.
+- Do NOT invent numbers (price, monthly_revenue, monthly_profit, profit_margin, traffic, organic_traffic) that weren't given — use null.
 - Do NOT invent text fields you can't infer — use "" (empty string), not placeholder text.
 - If the same fact appears multiple times with conflicting values, use the most recent/explicit one and note the conflict in "description".
 - "description": 1-2 sentence neutral summary of what the asset is.
-- "problem_solved": what user pain it addresses — do not repeat "description".
-- "target_users": who buys/uses it — do not repeat "problem_solved".
+- "target_users": who buys/uses it.
 - "type" must be exactly one of: SaaS, site, extension, API, other.
-- "b2b_b2c" must be exactly one of: B2B, B2C, Both, unknown.
 
 Return ONLY valid JSON matching this schema (no markdown, no commentary, no extra keys):
 {...}
@@ -32,17 +30,23 @@ Return ONLY valid JSON matching this schema (no markdown, no commentary, no extr
 Example:
 Input: "nichesite about dog training DogiT, ~2k visits/month per notes, sells ebook + affiliate links, owner says ~$300/mo revenue ..."
 Output: {
+    "source": "Manual",
+    "source_id": "",
     "name": "DogiT",
     "url": "",
     "type": "site",
-    "b2b_b2c": "B2C",
-    "price": null,
-    "revenue": 300,
-    "traffic": 2000,
     "description": "...",
-    "problem_solved": "...",
+    "monetization_model": "ebook sales + affiliate",
     "target_users": "...",
-    "monetization_model": "ebook sales + affiliate"
+    "price": null,
+    "monthly_revenue": 300,
+    "monthly_profit": 120,
+    "profit_margin": 40,
+    "traffic": "2000",
+    "organic_traffic": null,
+    "site_age": null,
+    "verified_revenue": false,
+    "verified_traffic": false
 }
 """
 

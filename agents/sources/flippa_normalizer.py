@@ -10,47 +10,24 @@ logger = logging.getLogger(__name__)
 
 
 COLLECTOR_FIELDS = (
+    "source",
+    "source_id",
     "name",
     "url",
     "type",
-    "b2b_b2c",
-    "price",
-    "revenue",
-    "traffic",
     "description",
-    "problem_solved",
-    "target_users",
     "monetization_model",
+    "target_users",
+    "price",
+    "monthly_revenue",
+    "monthly_profit",
+    "profit_margin",
+    "traffic",
+    "organic_traffic",
+    "site_age",
+    "verified_revenue",
+    "verified_traffic",
 )
-
-# COLLECTOR_FIELDS_NEW = (
-#     # Identity
-#     "source",
-#     "source_id",
-#     "name",
-#     "url",
-#     "type",
-
-#     # Business
-#     "description",
-#     "monetization_model",
-#     "target_users",
-
-#     # Financial
-#     "price",
-#     "monthly_revenue",
-#     "monthly_profit",
-#     "profit_margin",
-
-#     # Traction
-#     "traffic",
-#     "organic_traffic",
-#     "site_age",
-
-#     # Trust
-#     "verified_revenue",
-#     "verified_traffic",
-# )
 
 
 def normalize_flippa_listing(item: Mapping[str, Any]) -> dict[str, Any]:
@@ -62,6 +39,11 @@ def normalize_flippa_listing(item: Mapping[str, Any]) -> dict[str, Any]:
     name = _first_text(item.get("property_name"), basic_info.get("name"), item.get("title"))
     url = _first_text(item.get("listing_url"), item.get("url"))
     summary = _first_text(item.get("summary"), item.get("title"))
+    source_id = _first_text(
+        str(item.get("source_id")) if item.get("source_id") is not None else "",
+        str(item.get("id")) if item.get("id") is not None else "",
+        str(item.get("listing_id")) if item.get("listing_id") is not None else "",
+    )
 
     if not name:
         logger.warning("Flippa listing has no name")
@@ -69,17 +51,23 @@ def normalize_flippa_listing(item: Mapping[str, Any]) -> dict[str, Any]:
         logger.warning("Flippa listing '%s' has no URL", name or "unknown")
 
     return {
+        "source": "Flippa",
+        "source_id": source_id,
         "name": name,
         "url": url,
         "type": _normalize_type(item.get("property_type")),
-        "b2b_b2c": "",
-        "price": _to_number(item.get("price"), "price", name),
-        "revenue": _to_number(item.get("revenue_average"), "revenue_average", name),
-        "traffic": _to_traffic(item.get("uniques_per_month"), name),
         "description": summary,
-        "problem_solved": "",
-        "target_users": "",
         "monetization_model": _first_text(item.get("monetization")),
+        "target_users": "",
+        "price": _to_number(item.get("price"), "price", name),
+        "monthly_revenue": _to_number(item.get("revenue_average"), "revenue_average", name),
+        "monthly_profit": None,
+        "profit_margin": None,
+        "traffic": _to_traffic(item.get("uniques_per_month"), name),
+        "organic_traffic": None,
+        "site_age": None,
+        "verified_revenue": None,
+        "verified_traffic": None,
     }
 
 

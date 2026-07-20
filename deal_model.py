@@ -27,14 +27,18 @@ class DealObject:
     name: str = ""
     url: str = ""
     type: str = ""              # SaaS | site | extension | API | other
-    b2b_b2c: str = ""           # B2B | B2C | Both
     price: Optional[float] = None
-    revenue: Optional[float] = None   # monthly, if known
+    monthly_revenue: Optional[float] = None
+    monthly_profit: Optional[float] = None
+    profit_margin: Optional[float] = None
     traffic: Optional[str] = None
+    organic_traffic: Optional[str] = None
+    site_age: Optional[str] = None
+    verified_revenue: Optional[bool] = None
+    verified_traffic: Optional[bool] = None
 
     # Descriptive
     description: str = ""
-    problem_solved: str = ""
     target_users: str = ""
     monetization_model: str = ""
 

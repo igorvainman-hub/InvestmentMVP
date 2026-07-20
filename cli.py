@@ -53,7 +53,7 @@ def cmd_add(pipeline):
     url = input("url: ").strip()
     dtype = input("type (SaaS/site/extension/API/other): ").strip()
     price = input("price ($): ").strip()
-    revenue = input("monthly revenue ($): ").strip()
+    monthly_revenue = input("monthly revenue ($): ").strip()
     description = input("description: ").strip()
     source = input("source (Acquire/Flippa/GitHub/Reddit/Twitter/Manual/other) [Manual]: ").strip() or "Manual"
 
@@ -65,8 +65,8 @@ def cmd_add(pipeline):
     }
     if price:
         fields["price"] = float(price)
-    if revenue:
-        fields["revenue"] = float(revenue)
+    if monthly_revenue:
+        fields["monthly_revenue"] = float(monthly_revenue)
 
     print("\nRunning pipeline (Collector -> Analyzer -> Growth -> Scoring -> [Due Diligence])...")
     deal = pipeline.run_from_manual_fields(source=source, **fields)

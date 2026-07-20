@@ -8,17 +8,23 @@ from pydantic import BaseModel, Field, conint
 
 
 class CollectorResponse(BaseModel):
+    source: Optional[str] = None
+    source_id: Optional[str] = None
     name: Optional[str] = None
     url: Optional[str] = None
     type: Optional[str] = None
-    b2b_b2c: Optional[str] = None
-    price: Optional[float] = None
-    revenue: Optional[float] = None
-    traffic: Optional[str] = None
     description: Optional[str] = None
-    problem_solved: Optional[str] = None
-    target_users: Optional[str] = None
     monetization_model: Optional[str] = None
+    target_users: Optional[str] = None
+    price: Optional[float] = None
+    monthly_revenue: Optional[float] = None
+    monthly_profit: Optional[float] = None
+    profit_margin: Optional[float] = None
+    traffic: Optional[str] = None
+    organic_traffic: Optional[str] = None
+    site_age: Optional[str] = None
+    verified_revenue: Optional[bool] = None
+    verified_traffic: Optional[bool] = None
 
 
 class AnalyzerResponse(BaseModel):
