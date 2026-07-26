@@ -4,6 +4,8 @@ Investment OS — CLI (MVP)
 Usage:
     python cli.py add                             # interactively add a deal via manual fields
     python cli.py notes                           # paste raw messy notes, let Collector structure it
+    python cli.py flippa                          # fetch Flippa listings and process them
+    python cli.py flippa-only                     # fetch and archive Flippa listings only
     python cli.py list                            # list all deals sorted by score
     python cli.py show <deal_id>                  # show full detail of one deal
     python cli.py rerun <deal_id>                 # re-run analysis/scoring on existing deal
@@ -12,6 +14,7 @@ Usage:
 
 import sys
 from pipeline import InvestmentOSPipeline
+from agents.sources.flippa_service import FlippaService
 
 
 def print_deal_summary(deal):
@@ -116,6 +119,28 @@ def cmd_status(pipeline, deal_id, new_status):
     print_deal_summary(deal)
 
 
+def cmd_flippa(pipeline):
+    print("Fetching Flippa listings...")
+    service = FlippaService()
+    results = service.fetch_and_process(pipeline=pipeline)
+    if isinstance(results, list):
+        print(f"Processed {len(results)} Flippa deal(s).")
+    else:
+        print("Processed 1 Flippa deal.")
+
+
+def cmd_flippa_only():
+    print("Fetching Flippa listings only...")
+    try:
+        service = FlippaService()
+        deals = service.fetch_and_archive()
+    except ValueError as exc:
+        print(f"Flippa import failed: {exc}")
+        print("Set APIFY_API_TOKEN in your environment or .env file to enable Flippa imports.")
+        return
+    print(f"Archived {len(deals)} new Flippa deal(s).")
+
+
 def main():
     if len(sys.argv) < 2:
         print(__doc__)
@@ -128,6 +153,10 @@ def main():
         cmd_add(pipeline)
     elif command == "notes":
         cmd_notes(pipeline)
+    elif command == "flippa":
+        cmd_flippa(pipeline)
+    elif command == "flippa-only":
+        cmd_flippa_only()
     elif command == "list":
         cmd_list(pipeline)
     elif command == "show" and len(sys.argv) > 2:

@@ -37,6 +37,15 @@ class FlippaService:
         normalized = [normalize_flippa_listing(item) for item in raw_response]
         return self.archive.save_batch(normalized, raw_response)
 
+    def fetch_and_process(self, pipeline: Any | None = None, **filters: Any) -> list[DealObject] | DealObject:
+        """Archive Flippa deals and forward them to a pipeline as one or many deals."""
+        deals = self.fetch_and_archive(**filters)
+        if pipeline is None:
+            return deals
+        if hasattr(pipeline, "run_from_deals"):
+            return pipeline.run_from_deals(deals)
+        return deals
+
     def list_new_since(self, since: datetime) -> list[DealObject]:
         """Read newly archived Flippa listings without calling Apify."""
         return self.archive.list_new_since(since)

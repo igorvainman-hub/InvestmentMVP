@@ -43,6 +43,13 @@ class InvestmentOSPipeline:
         self._log(deal, "collector", "notes collected")
         return self._run_rest(deal)
 
+    def run_from_deals(self, deals: DealObject | list[DealObject]) -> list[DealObject] | DealObject:
+        """Run the rest of the pipeline for one or many already structured deals."""
+        if isinstance(deals, DealObject):
+            self._log(deals, "collector", "existing deal accepted directly")
+            return self._run_rest(deals)
+        return [self.run_from_deals(deal) for deal in deals]
+
     def _run_rest(self, deal: DealObject) -> DealObject:
         try:
             if self.llm.mock:
