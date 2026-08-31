@@ -1,121 +1,94 @@
 # Investment OS
 
-Минимальный MVP-пайплайн для поиска, структурирования, анализа и оценки цифровых активов.
+An MVP pipeline for discovering, structuring, analyzing, and scoring digital assets (SaaS, websites, extensions, APIs).
 
-## Что умеет проект
+## Features
 
-- собирать сделки из ручного ввода или сырых заметок;
-- импортировать сделки из Flippa через Apify;
-- нормализовать и архивировать списки сделок;
-- запускать анализ через LLM;
-- оценивать сделки по нескольким критериям;
-- сохранять результаты в JSON-хранилище;
-- поддерживать базовый CLI для работы с сделками.
+- Manual deal entry or import from raw notes
+- Flippa listing import via Apify
+- Automated normalization and archival
+- LLM-powered analysis
+- Multi-criteria deal scoring
+- JSON-based deal storage
+- CLI for deal management
 
-## Структура проекта
+## Project Structure
 
-- [cli.py](cli.py) — консольный интерфейс
-- [pipeline.py](pipeline.py) — основной pipeline обработки
-- [deal_model.py](deal_model.py) — модель сделки и жизненный цикл
-- [deal_store.py](deal_store.py) — сохранение сделок в JSON
-- [llm_client.py](llm_client.py) — обёртка над OpenAI
-- [agents/](agents/) — Collector, Analyzer, Growth, Scoring, Due Diligence
-- [agents/sources/](agents/sources/) — интеграции с внешними источниками, включая Apify/Flippa
-- [data/](data/) — хранилище сделок и архивных данных
+- [cli.py](cli.py) — Command-line interface
+- [pipeline.py](pipeline.py) — Deal processing pipeline
+- [deal_model.py](deal_model.py) — Deal model and lifecycle
+- [deal_store.py](deal_store.py) — JSON storage layer
+- [llm_client.py](llm_client.py) — OpenAI wrapper
+- [agents/](agents/) — Collector, Analyzer, Growth, Scoring, Due Diligence agents
+- [agents/sources/](agents/sources/) — External integrations (Apify, Flippa)
+- [data/](data/) — Deal storage and archives
 
-## Быстрый старт
+## Quick Start
 
-1. Установите зависимости:
+1. Install dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-2. Создайте файл [.env](.env) на основе [.env.example](.env.example) и укажите значения:
+2. Create `.env` from `.env.example` and set your keys:
 
 ```env
 OPENAI_API_KEY=your_openai_api_key_here
 APIFY_API_TOKEN=your_apify_token_here
 ```
 
-3. Запустите CLI:
+3. Run CLI commands:
 
 ```bash
-python cli.py add
-python cli.py flippa
-python cli.py list
-python cli.py show <deal_id>
+python cli.py add              # Add deal manually
+python cli.py flippa           # Import and analyze Flippa listings
+python cli.py list             # Show all deals
+python cli.py show <deal_id>   # View deal details
 ```
 
-## CLI-команды
-
-Ниже — основные команды и их назначение.
+## CLI Commands
 
 ```bash
 python cli.py add
-# Добавить сделку вручную через интерактивный ввод
+# Add a deal manually via interactive input
 
 python cli.py notes
-# Добавить сделку из сырых заметок: текст будет структурирован LLM
+# Add deal from raw notes (LLM-structured)
 
 python cli.py flippa
-# Загрузить новые листинги Flippa через Apify, сохранить их и отправить в pipeline
+# Import Flippa listings via Apify and run full pipeline
 
 python cli.py flippa-only
-# Только получить и сохранить новые листинги Flippa, без запуска pipeline
+# Import Flippa listings only (skip analysis and scoring)
 
 python cli.py list
-# Показать список сохранённых сделок
+# List all saved deals
 
 python cli.py show <deal_id>
-# Показать полную карточку сделки по ID
+# Display full deal card
 
 python cli.py rerun <deal_id>
-# Перезапустить анализ и пересчёт score для уже существующей сделки
+# Re-analyze and re-score an existing deal
 
-python cli.py status <deal_id> WATCHLIST
-# Изменить статус сделки вручную (например: WATCHLIST, ACQUIRED, REJECTED)
+python cli.py status <deal_id> STATUS
+# Change deal status (WATCHLIST, ACQUIRED, REJECTED, etc.)
 ```
 
-## Настройки и поведение
+## Configuration
 
-- Если `OPENAI_API_KEY` не задан, проект работает в mock-режиме и сохраняет сделку как черновик.
-- `APIFY_API_TOKEN` нужен только для работы с Apify/Flippa.
-- Flippa-импорт выполняется только при явном запуске через CLI или сервисный вызов.
-- После нормализации Flippa обрабатывает список сделок как batch и передаёт их в pipeline.
+- **Without `OPENAI_API_KEY`**: Runs in mock mode, saves deals as drafts
+- **`APIFY_API_TOKEN`**: Required only for Flippa import
+- **Flippa workflow**: Manual trigger via CLI or service call; processes listings as batch to pipeline
 
-## Flippa: полный и частичный запуск
+## Deal Concepts
 
-### Полный путь: Flippa → архив → pipeline
+- `status` — Deal lifecycle state
+- `score` — Overall rating (0–100)
+- `confidence` — Confidence in score
+- `decision` — BUY / WATCH / IGNORE
+- `missing_info`, `questions_for_seller` — Due diligence notes
 
-```bash
-python cli.py flippa
-```
+## Note
 
-Эта команда:
-- получает листинги из Flippa через Apify;
-- сохраняет новые сделки в архив;
-- отправляет их в pipeline для анализа и оценки.
-
-### Только импорт: Flippa → архив
-
-```bash
-python cli.py flippa-only
-```
-
-Эта команда:
-- получает листинги из Flippa через Apify;
-- сохраняет новые сделки в архив;
-- не запускает анализ и scoring.
-
-## Ключевые понятия
-
-- `status`: жизненный статус сделки
-- `score`: итоговая оценка от 0 до 100
-- `confidence`: уверенность в оценке
-- `decision`: BUY / WATCH / IGNORE
-- `missing_info` и `questions_for_seller`: данные для due diligence
-
-## Примечание
-
-Проект находится в стадии MVP: основное внимание уделено рабочему пайплайну, структуре данных и базовой логике оценки.
+MVP stage: Focus on working pipeline, data structure, and core scoring logic.
